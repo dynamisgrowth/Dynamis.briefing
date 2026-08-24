@@ -5,13 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Briefing de Contrato — Dynamis Growth</title>
 <style>
-  /* ============================================================
-     CONFIGURAÇÃO RÁPIDA — edite só esta parte se precisar mudar
-     o e-mail ou o WhatsApp que recebem o briefing.
-     (também dá pra editar direto lá embaixo, no <script>, nas
-     constantes EMAIL_DESTINO e WHATSAPP_NUMERO)
-     ============================================================ */
-
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
   :root{
@@ -189,9 +182,6 @@
     border:1.5px solid #26314D; border-radius:12px; padding:13px 20px; cursor:pointer;
   }
 
-  .status-line{font-size:11.5px; color:var(--text-faint); margin-top:18px;}
-  .status-line.ok{color:var(--primary-light);}
-  .status-line.warn{color:#E8A33D;}
 
   footer{text-align:center; margin-top:40px; font-weight:700; font-size:10px; letter-spacing:2px; color:var(--text-faint);}
 </style>
@@ -215,7 +205,7 @@
       <p>Preencha os dados abaixo com atenção — essas informações serão usadas diretamente na elaboração do seu contrato de prestação de serviços. Leva cerca de 5 minutos.</p>
     </div>
 
-    <div class="trust-note">🔒 <strong>Seus dados ficam protegidos:</strong> armazenamento seguro, com acesso restrito ao CEO da Dynamis, Pedro Ricardo — usados só para elaborar o seu contrato, nunca compartilhados com terceiros.</div>
+    <div class="trust-note">🔒 <strong>Seus dados ficam protegidos:</strong> o PDF é gerado no seu próprio aparelho e só sai daí quando você mesmo decidir enviar — usado só para elaborar o seu contrato.</div>
 
     <form id="briefingForm" novalidate>
 
@@ -380,8 +370,8 @@
       </div>
 
       <div class="submit-bar">
-        <button type="submit" class="btn-primary" id="submitBtn">Enviar briefing e gerar PDF</button>
-        <p class="form-note">Ao enviar, um PDF com todas as respostas é baixado automaticamente no seu aparelho e enviado direto para a Dynamis.</p>
+        <button type="submit" class="btn-primary" id="submitBtn">Enviar para WhatsApp</button>
+        <p class="form-note">Ao clicar, o PDF é baixado no seu aparelho e o WhatsApp abre pra você escolher em qual conversa mandar.</p>
       </div>
     </form>
   </div>
@@ -390,14 +380,12 @@
   <div id="successScreen">
     <div class="check">✓</div>
     <h2>Briefing enviado!</h2>
-    <p>O PDF com suas respostas já foi baixado no seu aparelho. Também dá pra mandar uma cópia pelo WhatsApp — o botão abaixo já abre a conversa pronta, é só anexar o PDF que acabou de baixar (envie como Documento, não como foto).</p>
+    <p>O PDF com suas respostas foi baixado no seu aparelho, e o WhatsApp já abriu pra você escolher a conversa. É só anexar o PDF que acabou de baixar (envie como Documento, não como foto).</p>
 
     <div class="action-stack">
-      <a href="#" id="wppBtn" class="btn-wpp" target="_blank">Abrir WhatsApp e anexar PDF</a>
+      <a href="#" id="wppBtn" class="btn-wpp" target="_blank">Abrir WhatsApp de novo</a>
       <button class="btn-secondary" onclick="location.reload()">Preencher novo briefing</button>
     </div>
-
-    <div class="status-line" id="statusLine">Enviando para a Dynamis…</div>
   </div>
 
   <footer>DYNAMIS.GROWTH</footer>
@@ -805,20 +793,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
 </script>
 <script>
-/* ============================================================
-   CONFIGURAÇÃO — troque os valores abaixo pelos seus dados reais
-   ============================================================ */
-const WHATSAPP_NUMERO = "5500000000000"; // WhatsApp da empresa, só números, com 55 + DDD
-
-// Preencha depois de publicar o Apps Script (veja apps-script/README.md).
-// É o Apps Script — não este arquivo — quem decide pra qual e-mail o PDF vai.
-const CONFIG = {
-  API_URL: "", // URL do Web App do Apps Script (termina em /exec)
-  TOKEN: ""    // mesmo token secreto definido no Code.gs
-};
-
-/* ============================================================ */
-
 const form = document.getElementById('briefingForm');
 const formScreen = document.getElementById('formScreen');
 const successScreen = document.getElementById('successScreen');
@@ -950,36 +924,8 @@ function montarMensagemWhatsApp(dados){
 *Valor:* ${dados.valor || '-'}
 
 O PDF completo já foi baixado — é só anexar aqui *como Documento* (não como foto), para não perder a qualidade.`;
-  return `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(texto)}`;
-}
-
-/** Manda o PDF pro Apps Script, que envia o e-mail de verdade — sem depender
- *  de ninguém logar em Gmail nem clicar em enviar manualmente. */
-async function enviarParaBackend(dados, doc, fileName){
-  const statusLine = document.getElementById('statusLine');
-  if(!CONFIG.API_URL){
-    statusLine.textContent = 'Envio automático ainda não configurado — o PDF já foi baixado no seu aparelho.';
-    statusLine.classList.add('warn');
-    return;
-  }
-  try{
-    const pdfBase64 = doc.output('datauristring').split(',')[1];
-    const res = await fetch(CONFIG.API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita preflight CORS no Apps Script
-      body: JSON.stringify({ token: CONFIG.TOKEN, dados, pdfBase64, fileName })
-    });
-    const json = await res.json();
-    if(json.ok){
-      statusLine.textContent = '✓ Enviado automaticamente para a Dynamis.';
-      statusLine.classList.add('ok');
-    } else {
-      throw new Error(json.error || 'erro desconhecido');
-    }
-  }catch(err){
-    statusLine.textContent = 'Não foi possível enviar automaticamente — o PDF já foi baixado, pode anexar pelo WhatsApp.';
-    statusLine.classList.add('warn');
-  }
+  // Sem número fixo: abre o WhatsApp e deixa o cliente escolher pra qual conversa mandar.
+  return `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
 }
 
 form.addEventListener('submit', function(e){
@@ -998,12 +944,12 @@ form.addEventListener('submit', function(e){
   const fileName = `Briefing_${(dados.nome_fantasia || 'contrato').replace(/\s+/g,'_')}.pdf`;
   doc.save(fileName);
 
-  document.getElementById('wppBtn').href = montarMensagemWhatsApp(dados);
+  const linkWpp = montarMensagemWhatsApp(dados);
+  document.getElementById('wppBtn').href = linkWpp;
+  window.open(linkWpp, '_blank');
 
   formScreen.style.display = 'none';
   successScreen.style.display = 'block';
-
-  enviarParaBackend(dados, doc, fileName);
 });
 </script>
 
