@@ -109,6 +109,7 @@
     outline:none;
     transition:border-color .15s ease;
   }
+  .field input[type="date"]{color-scheme:dark;}
   .field input::placeholder, .field textarea::placeholder{color:var(--text-faint);}
   .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--primary);}
   .field textarea{resize:vertical; min-height:80px; font-family:'Montserrat',sans-serif;}
@@ -225,12 +226,12 @@
         <div class="field-row">
           <div class="field" data-required>
             <label>Razão social <span class="req">*</span></label>
-            <input type="text" name="razao_social" placeholder="Ex: Tempero das Tias Alimentos LTDA">
+            <input type="text" name="razao_social" placeholder="Ex: Empresa Exemplo LTDA">
             <div class="err-msg">Preencha a razão social.</div>
           </div>
           <div class="field" data-required>
             <label>Nome fantasia <span class="req">*</span></label>
-            <input type="text" name="nome_fantasia" placeholder="Ex: Tempero das Tias">
+            <input type="text" name="nome_fantasia" placeholder="Ex: Empresa Exemplo">
             <div class="err-msg">Preencha o nome fantasia.</div>
           </div>
         </div>
@@ -301,15 +302,15 @@
         </div>
 
         <div class="field" data-required>
-          <label>Plano / serviço contratado <span class="req">*</span> <span class="locked-tag">🔒 fixo</span></label>
-          <textarea name="plano" readonly>8 posts mensais + 3 reels profissionais + 6 stories mensais + estratégia e consultoria a cada 15 dias</textarea>
+          <label>Plano / serviço contratado <span class="req">*</span></label>
+          <textarea name="plano" placeholder="Descreva o plano ou serviço contratado"></textarea>
           <div class="err-msg">Descreva o plano contratado.</div>
         </div>
 
         <div class="field-row">
           <div class="field" data-required>
-            <label>Valor mensal <span class="req">*</span> <span class="locked-tag">🔒 fixo</span></label>
-            <input type="text" name="valor" value="R$ 1.199,90" readonly>
+            <label>Valor mensal <span class="req">*</span></label>
+            <input type="text" name="valor" placeholder="R$ 0.000,00">
             <div class="err-msg">Preencha o valor mensal.</div>
           </div>
           <div class="field" data-required>
@@ -327,22 +328,22 @@
 
         <div class="field-row">
           <div class="field" data-required>
-            <label>Dia de vencimento <span class="req">*</span> <span class="locked-tag">🔒 fixo</span></label>
-            <input type="text" name="vencimento" value="dia 23" readonly>
+            <label>Dia de vencimento <span class="req">*</span></label>
+            <input type="text" name="vencimento" placeholder="Ex: dia 10">
             <div class="err-msg">Preencha o dia de vencimento.</div>
           </div>
           <div class="field" data-required>
-            <label>Data de início do contrato <span class="req">*</span> <span class="locked-tag">🔒 fixo</span></label>
-            <input type="date" name="data_inicio" value="2026-08-23" readonly>
+            <label>Data de início do contrato <span class="req">*</span></label>
+            <input type="date" name="data_inicio">
             <div class="err-msg">Selecione a data de início.</div>
           </div>
         </div>
 
         <div class="field" data-required>
-          <label>Duração do contrato <span class="req">*</span> <span class="locked-tag">🔒 fixo</span></label>
-          <select name="duracao" class="locked-select" tabindex="-1">
+          <label>Duração do contrato <span class="req">*</span></label>
+          <select name="duracao">
             <option value="">Selecione</option>
-            <option value="3 meses" selected>3 meses</option>
+            <option value="3 meses">3 meses</option>
             <option value="6 meses">6 meses</option>
             <option value="12 meses">12 meses</option>
             <option value="Prazo indeterminado">Prazo indeterminado</option>
@@ -1017,7 +1018,26 @@ function montarPDF(dados){
   return doc;
 }
 
-form.addEventListener('submit', function(e){
+// Dentro do claude.ai o download passa pelo capability "downloads";
+// fora dele (ex: GitHub Pages) cai no doc.save() normal do jsPDF.
+const downloadsPronto = (window.claude && window.claude.use)
+  ? window.claude.use("downloads").catch(() => null)
+  : Promise.resolve(null);
+
+async function salvarPDF(doc, fileName){
+  const downloads = await downloadsPronto;
+  if(!downloads){ doc.save(fileName); return true; }
+  try{
+    await downloads.save({ filename: fileName, data: doc.output('blob') });
+    return true;
+  }catch(err){
+    if(err && err.code === 'declined') return false;
+    doc.save(fileName);
+    return true;
+  }
+}
+
+form.addEventListener('submit', async function(e){
   e.preventDefault();
   if(!validarForm()){
     const primeiroInvalido = form.querySelector('.invalid');
@@ -1031,7 +1051,12 @@ form.addEventListener('submit', function(e){
   const dados = coletarDados();
   const doc = montarPDF(dados);
   const fileName = `Briefing_${(dados.nome_fantasia || 'contrato').replace(/\s+/g,'_')}.pdf`;
-  doc.save(fileName);
+  const salvo = await salvarPDF(doc, fileName);
+  if(!salvo){
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Baixar PDF";
+    return;
+  }
 
   formScreen.style.display = 'none';
   successScreen.style.display = 'block';
