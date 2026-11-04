@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Prévia — como fica o documento salvo</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1A1F29; --muted:#6B7280; --accent:#0B5FFF; --paper:#FFFFFF; --page-bg:#E9EBEF; }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--page-bg); font-family:'IBM Plex Sans',system-ui,sans-serif; color:var(--ink)}
+  .toolbar{
+    position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid #DADEE5;
+    padding:12px 24px; display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted);
+  }
+  .toolbar b{color:var(--ink)}
+  .note{ max-width:760px; margin:16px auto 0; padding:10px 14px; background:#FFF7ED; border:1px solid #FED7AA;
+    color:#9A3412; font-size:12.5px; border-radius:8px; }
+  .page{
+    max-width:760px; margin:20px auto 60px; background:var(--paper); padding:64px 72px;
+    box-shadow:0 1px 3px rgba(0,0,0,.08), 0 12px 32px rgba(20,25,35,.10); border-radius:2px;
+  }
+  .doc-title{font-family:'Archivo',sans-serif; font-weight:800; font-size:26px; margin:0 0 6px}
+  .doc-sub{font-size:13px; color:var(--muted); margin:0 0 28px}
+  .meta-row{
+    display:flex; gap:0; border-top:1px solid #E4E7EB; border-bottom:1px solid #E4E7EB;
+    padding:14px 0; margin-bottom:36px;
+  }
+  .meta-item{flex:1; padding:0 16px; border-left:1px solid #E4E7EB}
+  .meta-item:first-child{border-left:none; padding-left:0}
+  .meta-item label{display:block; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
+  .meta-item div{font-weight:600; font-size:14px}
+
+  .section{margin-bottom:38px}
+  .section-title{
+    font-family:'Archivo',sans-serif; font-weight:700; font-size:16.5px; color:var(--accent);
+    margin:0 0 18px; padding-bottom:8px; border-bottom:2px solid var(--accent); display:inline-block;
+  }
+  .section.internal .section-title{color:var(--ink); border-bottom-color:var(--ink)}
+  .internal-tag{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.08em;
+    background:var(--ink); color:#fff; padding:3px 8px; border-radius:4px; margin-bottom:10px; font-weight:600;
+  }
+  .qa{margin-bottom:22px}
+  .qa:last-child{margin-bottom:0}
+  .q{font-weight:600; font-size:14.5px; line-height:1.5; margin:0 0 3px}
+  .q-informal{font-size:12px; color:var(--muted); font-style:italic; margin:0 0 8px}
+  .a{
+    font-size:14px; line-height:1.7; margin:0; padding-left:14px; border-left:2px solid #E4E7EB; color:#2B303B;
+  }
+  .a.empty{color:#B0B5BF; font-style:italic}
+
+  .closing{margin-top:44px; padding-top:28px; border-top:1px solid #E4E7EB}
+  .footer{margin-top:48px; padding-top:16px; border-top:1px solid #E4E7EB; font-size:11.5px; color:var(--muted); display:flex; justify-content:space-between}
+
+  @media print{
+    .toolbar, .note{ display:none !important }
+    body{ background:#fff }
+    .page{ box-shadow:none; margin:0 auto; max-width:100%; padding:24px 8px }
+  }
+</style>
+</head>
+<body>
+  <div class="toolbar">📄 <b>Google Docs</b> — assim fica cada briefing salvo, um documento por cliente</div>
+  <div class="note">
+    ⚠️ Simulação estática, dados fictícios (Hamburgueria Exemplo) — só pra validar o formato antes de mexer no Apps Script de verdade.
+  </div>
+
+  <div class="page">
+    <p class="doc-title">Briefing Estratégico — Hamburgueria Exemplo</p>
+    <p class="doc-sub">Documento gerado automaticamente pelo site de briefing da Dynamis</p>
+
+    <div class="meta-row">
+      <div class="meta-item"><label>Cliente</label><div>Hamburgueria Exemplo</div></div>
+      <div class="meta-item"><label>Data</label><div>24/08/2026</div></div>
+      <div class="meta-item"><label>Responsável Dynamis</label><div>Pedro Ricardo</div></div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">1 · Sobre o negócio</p>
+      <div class="qa">
+        <p class="q">Como funciona o seu negócio hoje? De que forma vocês ganham dinheiro?</p>
+        <p class="q-informal">"Aqui o forte é mais o salão ou o delivery?"</p>
+        <p class="a">Salão + delivery pelo iFood, mais ou menos meio a meio.</p>
+      </div>
+      <div class="qa">
+        <p class="q">Qual é o momento atual da empresa — crescendo, estabilizando, lançando algo novo, ou com dificuldades?</p>
+        <p class="q-informal">"O movimento tá bom, ou tá mais parado que o normal ultimamente?"</p>
+        <p class="a">Crescendo — movimento aumentou desde que abriram a segunda unidade.</p>
+      </div>
+      <div class="qa">
+        <p class="q">Quais são as prioridades de vocês para os próximos meses?</p>
+        <p class="q-informal">"Tem alguma coisa que vocês querem resolver ou lançar até o fim do ano?"</p>
+        <p class="a">Organizar o cardápio e lançar combos novos até o fim do ano.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">2 · Sobre o produto ou serviço</p>
+      <div class="qa">
+        <p class="q">O que exatamente vocês vendem?</p>
+        <p class="q-informal">"Qual é o prato/procedimento que mais sai daqui?"</p>
+        <p class="a">Hambúrguer artesanal, batata rústica e milk-shake.</p>
+      </div>
+      <div class="qa">
+        <p class="q">O que faz um cliente escolher vocês em vez do concorrente?</p>
+        <p class="q-informal">"Por que alguém vem comer aqui e não no restaurante da esquina?"</p>
+        <p class="a">Carne feita na hora e molho autoral — os concorrentes usam tudo pronto.</p>
+      </div>
+    </div>
+
+    <div class="section internal">
+      <span class="internal-tag">USO INTERNO DYNAMIS — NÃO MOSTRAR AO CLIENTE</span>
+      <p class="section-title">7 · Pauta interna da equipe</p>
+      <div class="qa">
+        <p class="q">O cliente pediu X, mas qual é o objetivo real por trás desse pedido?</p>
+        <p class="a empty">— não preenchido —</p>
+      </div>
+      <div class="qa">
+        <p class="q">Quais etapas da jornada do público essa entrega precisa atender?</p>
+        <p class="a empty">— não preenchido —</p>
+      </div>
+    </div>
+
+    <div class="closing">
+      <div class="qa">
+        <p class="q">Observações gerais</p>
+        <p class="a">Cliente bem engajado, já trouxe fotos boas do produto.</p>
+      </div>
+      <div class="qa">
+        <p class="q">Próximos passos</p>
+        <p class="a">Enviar proposta até sexta; alinhar datas de gravação.</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Dynamis — dynamis.growth</span>
+      <span>Salvo em 24/08/2026 às 09:14</span>
+    </div>
+  </div>
+</body>
+</html>

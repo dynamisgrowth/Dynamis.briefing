@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Prévia — como fica a planilha</title>
+<style>
+  :root{
+    --header-bg:#F1F3F4; --header-border:#D4D7DC; --cell-border:#E4E7EB;
+    --frozen-bg:#FAFBFC; --text:#1A1F29; --text-muted:#6B7280;
+    --font:'Segoe UI',Arial,sans-serif; --accent:#0B5FFF;
+  }
+  *{box-sizing:border-box}
+  body{font-family:var(--font); margin:0; background:#F6F7F9; color:var(--text)}
+  .topbar{
+    padding:16px 24px; background:#fff; border-bottom:1px solid var(--cell-border);
+    display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:20;
+  }
+  .topbar .sheet-icon{width:22px;height:22px;background:#0F9D58;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0}
+  .topbar h1{font-size:14.5px; font-weight:600; margin:0}
+  .topbar p{font-size:12px; color:var(--text-muted); margin:2px 0 0}
+  .note{
+    margin:14px 24px 0; padding:10px 14px; background:#FFF7ED; border:1px solid #FED7AA;
+    color:#9A3412; font-size:12.5px; border-radius:8px; max-width:900px;
+  }
+  .grid-wrap{margin:16px 24px 40px; overflow:auto; max-height:78vh; border:1px solid var(--cell-border); border-radius:8px; background:#fff}
+  table{border-collapse:separate; border-spacing:0; font-size:12.5px; white-space:normal}
+  th,td{border-right:1px solid var(--cell-border); border-bottom:1px solid var(--cell-border); padding:8px 10px; vertical-align:top; text-align:left}
+  thead th{
+    background:var(--header-bg); font-weight:600; position:sticky; top:0; z-index:5;
+    color:var(--text); line-height:1.4;
+  }
+  .frozen{position:sticky; z-index:6; background:var(--frozen-bg)}
+  thead .frozen{z-index:10; background:var(--header-bg)}
+  .code{color:var(--accent); font-weight:700; font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:11px}
+  td.muted{color:var(--text-muted); font-style:italic}
+  .col-id{width:70px;min-width:70px}
+  .col-data{width:150px;min-width:150px}
+  .col-cliente{width:170px;min-width:170px}
+  .col-datacampo{width:100px;min-width:100px}
+  .col-resp{width:140px;min-width:140px}
+  .col-q{width:230px;min-width:230px}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="sheet-icon">▦</div>
+    <div>
+      <h1>Dynamis — Briefings (banco) &nbsp;·&nbsp; aba "Briefings"</h1>
+      <p>Prévia de como a planilha fica depois que o Apps Script cria o cabeçalho e alguém salva um briefing pelo site.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    ⚠️ Isto é uma <strong>simulação estática</strong> pra você ver o layout — não é a planilha de verdade
+    (essa só existe depois que você seguir o <code>apps-script/README.md</code>). Os dados abaixo são
+    fictícios, só pra ilustrar. Role pra direita: as 5 primeiras colunas ficam congeladas.
+  </div>
+
+  <div class="grid-wrap">
+    <table id="tbl"></table>
+  </div>
+
+<script>
+const SECTIONS = [
+  { id:1, questions:[
+    "Como funciona o seu negócio hoje? De que forma vocês ganham dinheiro?",
+    "Qual é o momento atual da empresa — crescendo, estabilizando, lançando algo novo, ou com dificuldades?",
+    "Quais são as prioridades de vocês para os próximos meses?"
+  ]},
+  { id:2, questions:[
+    "O que exatamente vocês vendem?",
+    "O que faz um cliente escolher vocês em vez do concorrente?",
+    "Por que alguém pagaria pelo que vocês oferecem?"
+  ]},
+  { id:3, questions:[
+    "Quem é o cliente ideal de vocês? Dia a dia, o que busca, onde consome conteúdo?",
+    "Quem vocês consideram concorrentes diretos hoje?",
+    "Vocês acompanham o que os concorrentes fazem nas redes? Sabem o que funciona pra eles?"
+  ]},
+  { id:4, questions:[
+    "O que vocês esperam alcançar: mais gente conhecendo, mais gente lembrando, ou mais gente comprando?",
+    "Quem exatamente vocês querem impactar com isso?",
+    "Que ação vocês esperam que a pessoa tome depois de ver o conteúdo?",
+    "Em quais redes/canais vocês já estão presentes, e quais fazem sentido pra esse objetivo?"
+  ]},
+  { id:5, questions:[
+    "Vocês já testaram alguma estratégia antes? O que funcionou e o que não?",
+    "Vocês têm acesso aos números/relatórios das redes de vocês hoje?"
+  ]},
+  { id:6, questions:[
+    "Com que frequência vocês gostariam de revisar os resultados junto com a gente?",
+    "Existe alguma meta numérica que vocês já têm em mente?"
+  ]},
+  { id:7, questions:[
+    "O cliente pediu X, mas qual é o objetivo real por trás desse pedido?",
+    "Quais etapas da jornada do público essa entrega precisa atender?",
+    "Quais formatos estão performando melhor para essa audiência agora?",
+    "Qual conteúdo/ação vai gerar o resultado que o cliente espera de verdade?"
+  ]}
+];
+
+const META_BEFORE = [
+  { key:'id', header:'ID', cls:'col-id' },
+  { key:'criadoEm', header:'Criado em', cls:'col-data' },
+  { key:'cliente', header:'Cliente / Empresa', cls:'col-cliente' },
+  { key:'data', header:'Data', cls:'col-datacampo' },
+  { key:'responsavel', header:'Responsável Dynamis', cls:'col-resp' }
+];
+const META_AFTER = [
+  { key:'observacoes', header:'Observações gerais', cls:'col-q' },
+  { key:'proximosPassos', header:'Próximos passos', cls:'col-q' }
+];
+
+const columns = META_BEFORE.slice();
+SECTIONS.forEach(s => s.questions.forEach((q,i) => columns.push({
+  key:'s'+s.id+'q'+(i+1), header:(s.id+'.'+(i+1))+' — '+q, code:s.id+'.'+(i+1), cls:'col-q'
+})));
+columns.push(...META_AFTER);
+
+// dados de exemplo (fictícios)
+const example = {
+  id:'8f2a1c…', criadoEm:'24/08/2026 09:14', cliente:'Hamburgueria Exemplo', data:'24/08/2026', responsavel:'Pedro Ricardo',
+  s1q1:'Salão + delivery pelo iFood, mais ou menos meio a meio.',
+  s1q2:'Crescendo — movimento aumentou desde que abriram a segunda unidade.',
+  s1q3:'Organizar o cardápio e lançar combos novos até o fim do ano.',
+  s2q1:'Hambúrguer artesanal, batata rústica e milk-shake.',
+  s2q2:'Carne feita na hora e molho autoral, os concorrentes usam tudo pronto.',
+  s2q3:'Confiam na qualidade — já testaram e voltam sempre.',
+  s3q1:'Jovens de 18 a 35, saem pra comer no fim de semana, vêm em grupo.',
+  s3q2:'Duas hamburguerias no mesmo bairro.',
+  s3q3:'Acompanham, mas não têm rotina fixa de análise.',
+  s4q1:'Mais gente comprando — já é conhecido, falta converter mais.',
+  s4q2:'Quem já seguiu mas nunca comprou.',
+  s4q3:'Pedir pelo delivery ou vir no fim de semana.',
+  s4q4:'Instagram principalmente, WhatsApp pra pedido direto.',
+  s5q1:'Já fizeram promoção de terça — funcionou bem, dobrou o pedido no dia.',
+  s5q2:'Têm acesso ao Instagram, mas não olham direito os números.',
+  s6q1:'Toda semana, resumo rápido.',
+  s6q2:'Aumentar 20% o pedido de delivery em 3 meses.',
+  s7q1:'',
+  s7q2:'',
+  s7q3:'',
+  s7q4:'',
+  observacoes:'Cliente bem engajado, já trouxe fotos boas do produto.',
+  proximosPassos:'Enviar proposta até sexta; alinhar datas de gravação.'
+};
+
+const table = document.getElementById('tbl');
+let frozenLeft = [0];
+META_BEFORE.forEach((c,i) => { if(i<4) frozenLeft.push(frozenLeft[i] + widthOf(META_BEFORE[i].cls)); });
+function widthOf(cls){ return {'col-id':70,'col-data':150,'col-cliente':170,'col-datacampo':100,'col-resp':140}[cls] || 230; }
+
+let thead = '<thead><tr>';
+columns.forEach((c,i) => {
+  const frozen = i < 5;
+  const style = frozen ? `left:${frozenLeft[i]}px;` : '';
+  const label = c.code ? `<span class="code">${c.code}</span><br>${c.header.replace(/^\d+\.\d+ — /,'')}` : c.header;
+  thead += `<th class="${c.cls} ${frozen?'frozen':''}" style="${style}">${label}</th>`;
+});
+thead += '</tr></thead>';
+
+let tbody = '<tbody><tr>';
+columns.forEach((c,i) => {
+  const frozen = i < 5;
+  const style = frozen ? `left:${frozenLeft[i]}px;` : '';
+  const val = example[c.key] || '';
+  const cls = val ? '' : 'muted';
+  tbody += `<td class="${c.cls} ${frozen?'frozen':''} ${cls}" style="${style}">${val || '—'}</td>`;
+});
+tbody += '</tr></tbody>';
+
+table.innerHTML = thead + tbody;
+</script>
+</body>
+</html>
